@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/* Dark mode is driven by <html data-theme="dark"> (set before paint by an inline script). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  --ink: #14161b;
+  --canvas: #f6f5f1;
+  --surface: #ffffff;
+  --sidebar: #0d0f13;
+  --accent: #d4a437;
+  --accent-deep: #b8861f;
+  --accent-fg: #17130a;
+  --link: #8a6206;
+  --card-shadow: 0 1px 2px rgb(16 18 24 / 0.04), 0 12px 32px -16px rgb(16 18 24 / 0.12);
+  --glow: rgb(212 164 55 / 0.12);
+}
+
+html[data-theme="dark"] {
+  --ink: #eceae4;
+  --canvas: #0a0b0e;
+  --surface: #14161b;
+  --sidebar: #08090b;
+  --accent: #e0b24a;
+  --accent-deep: #c4932c;
+  --accent-fg: #17130a;
+  --link: #e8bd55;
+  --card-shadow: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 16px 40px -20px rgb(0 0 0 / 0.7);
+  --glow: rgb(224 178 74 / 0.08);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-sidebar: var(--sidebar);
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-fg: var(--accent-fg);
+  --color-link: var(--link);
+  --shadow-card: var(--card-shadow);
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+html,
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1, "cv11" 1;
+}
+
+body {
+  background-image: radial-gradient(900px 420px at 85% -8%, var(--glow), transparent 70%);
+  background-attachment: fixed;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: rgb(212 164 55 / 0.3);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+table.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+table.tbl th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--ink) 50%, transparent);
+  padding: 0.7rem 0.85rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  white-space: nowrap;
+}
+table.tbl td {
+  padding: 0.8rem 0.85rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 6%, transparent);
+  vertical-align: middle;
+}
+table.tbl tr:last-child td {
+  border-bottom: none;
+}
+table.tbl tbody tr {
+  transition: background-color 0.15s ease;
+}
+table.tbl tbody tr:hover {
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Theme toggle: show the icon for the theme you'd switch TO */
+.theme-sun { display: none; }
+html[data-theme="dark"] .theme-sun { display: block; }
+html[data-theme="dark"] .theme-moon { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
