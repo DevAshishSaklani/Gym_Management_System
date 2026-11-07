@@ -14,15 +14,7 @@ export async function loginAction(fd: FormData) {
   const email = s(fd, "email").toLowerCase();
   const password = String(fd.get("password") ?? "");
   if (!email || !password) flash("/login", "error", "Enter your email and password.");
-  const [u] = await db
-  .select({
-    id: users.id,
-    role: users.role,
-    passwordHash: users.passwordHash,
-  })
-  .from(users)
-  .where(eq(users.email, email))
-  .limit(1);
+  const [u] = await db.select().from(users).where(eq(users.email, email)).limit(1);
   if (!u || !verifyPassword(password, u.passwordHash)) {
     flash("/login", "error", "Invalid email or password.");
   }

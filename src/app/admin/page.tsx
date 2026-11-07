@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -15,97 +14,77 @@ export default async function AdminDashboard() {
   const today = todayStr();
   const monthStart = `${today.slice(0, 7)}-01`;
 
-  const [
-    totalsResult,
-    todayAttResult,
-    monthRevenue,
-    revenue,
-    expiring,
-    todaysList,
-    recentPayments,
-    recentMembers,
-    dist,
-  ] = await Promise.all([
-    db
-      .select({
-        total: sql<number>`count(*)::int`,
-        active: sql<number>`(count(*) filter (where ${members.status} = 'active'))::int`,
-        expired: sql<number>`(count(*) filter (where ${members.status} = 'expired'))::int`,
-        newThisMonth: sql<number>`(count(*) filter (where ${members.joinDate} >= ${monthStart}))::int`,
-      })
-      .from(members),
+  const [totals] = await db
+    .select({
+      total: sql<number>`count(*)::int`,
+      active: sql<number>`(count(*) filter (where ${members.status} = 'active'))::int`,
+      expired: sql<number>`(count(*) filter (where ${members.status} = 'expired'))::int`,
+      newThisMonth: sql<number>`(count(*) filter (where ${members.joinDate} >= ${monthStart}))::int`,
+    })
+    .from(members);
 
-    db
-      .select({ c: sql<number>`count(*)::int` })
-      .from(attendance)
-      .where(eq(attendance.date, today)),
+  const [todayAtt] = await db
+    .select({ c: sql<number>`count(*)::int` })
+    .from(attendance)
+    .where(eq(attendance.date, today));
 
-    revenueBetween(monthStart, today),
-    revenueByMonth(6),
+  const monthRevenue = await revenueBetween(monthStart, today);
+  const revenue = await revenueByMonth(6);
 
-    db
-      .select({
-        id: members.id,
-        name: members.name,
-        expiry: members.membershipExpiry,
-        plan: membershipPlans.name,
-      })
-      .from(members)
-      .leftJoin(membershipPlans, eq(members.planId, membershipPlans.id))
-      .where(and(eq(members.status, "active"), gte(members.membershipExpiry, today), lte(members.membershipExpiry, addDays(today, 14))))
-      .orderBy(members.membershipExpiry)
-      .limit(6),
+  const expiring = await db
+    .select({
+      id: members.id,
+      name: members.name,
+      expiry: members.membershipExpiry,
+      plan: membershipPlans.name,
+    })
+    .from(members)
+    .leftJoin(membershipPlans, eq(members.planId, membershipPlans.id))
+    .where(and(eq(members.status, "active"), gte(members.membershipExpiry, today), lte(members.membershipExpiry, addDays(today, 14))))
+    .orderBy(members.membershipExpiry)
+    .limit(6);
 
-    db
-      .select({
-        id: attendance.id,
-        memberId: members.id,
-        name: members.name,
-        checkIn: attendance.checkIn,
-        checkOut: attendance.checkOut,
-      })
-      .from(attendance)
-      .innerJoin(members, eq(attendance.memberId, members.id))
-      .where(eq(attendance.date, today))
-      .orderBy(desc(attendance.checkIn))
-      .limit(6),
+  const todaysList = await db
+    .select({
+      id: attendance.id,
+      memberId: members.id,
+      name: members.name,
+      checkIn: attendance.checkIn,
+      checkOut: attendance.checkOut,
+    })
+    .from(attendance)
+    .innerJoin(members, eq(attendance.memberId, members.id))
+    .where(eq(attendance.date, today))
+    .orderBy(desc(attendance.checkIn))
+    .limit(6);
 
-    db
-      .select({
-        id: payments.id,
-        amount: payments.amount,
-        date: payments.paymentDate,
-        method: payments.method,
-        status: payments.status,
-        memberId: members.id,
-        name: members.name,
-      })
-      .from(payments)
-      .innerJoin(members, eq(payments.memberId, members.id))
-      .orderBy(desc(payments.paymentDate), desc(payments.id))
-      .limit(6),
+  const recentPayments = await db
+    .select({
+      id: payments.id,
+      amount: payments.amount,
+      date: payments.paymentDate,
+      method: payments.method,
+      status: payments.status,
+      memberId: members.id,
+      name: members.name,
+    })
+    .from(payments)
+    .innerJoin(members, eq(payments.memberId, members.id))
+    .orderBy(desc(payments.paymentDate), desc(payments.id))
+    .limit(6);
 
-    db
-      .select({
-        id: members.id,
-        name: members.name,
-        joinDate: members.joinDate,
-        status: members.status,
-      })
-      .from(members)
-      .orderBy(desc(members.joinDate), desc(members.id))
-      .limit(5),
+  const recentMembers = await db
+    .select()
+    .from(members)
+    .orderBy(desc(members.joinDate), desc(members.id))
+    .limit(5);
 
-    db
-      .select({ name: membershipPlans.name, c: sql<number>`count(*)::int` })
-      .from(members)
-      .innerJoin(membershipPlans, eq(members.planId, membershipPlans.id))
-      .where(eq(members.status, "active"))
-      .groupBy(membershipPlans.name),
-  ]);
-
-  const totals = totalsResult[0];
-  const todayAtt = todayAttResult[0];
+  const dist = await db
+    .select({ name: membershipPlans.name, c: sql<number>`count(*)::int` })
+    .from(members)
+    .innerJoin(membershipPlans, eq(members.planId, membershipPlans.id))
+    .where(eq(members.status, "active"))
+    .groupBy(membershipPlans.name);
 
   return (
     <>
