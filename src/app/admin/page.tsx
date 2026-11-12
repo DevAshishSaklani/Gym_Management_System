@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -89,15 +90,43 @@ export default async function AdminDashboard() {
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Good day, {user.name.split(" ")[0]}</h1>
-        <p className="mt-1 text-sm text-ink/60">Here&apos;s what&apos;s happening at your gym today.</p>
+        <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+          Good day, {user.name.split(" ")[0]}
+        </h1>
+        <p className="mt-1 text-sm text-ink/60">
+          Here&apos;s what&apos;s happening at your gym today.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <StatCard label="Total Members" value={totals.total} hint={`+${totals.newThisMonth} this month`} icon="👥" />
-        <StatCard label="Active Members" value={totals.active} icon="💪" />
-        <StatCard label="Expired" value={totals.expired} hint="Need renewal" icon="⏰" />
+        <Link href="/admin/members" className="block cursor-pointer">
+          <StatCard
+            label="Total Members"
+            value={totals.total}
+            hint={`+${totals.newThisMonth} this month`}
+            icon="👥"
+          />
+        </Link>
+
+        <Link href="/admin/members?status=active" className="block cursor-pointer">
+          <StatCard
+            label="Active Members"
+            value={totals.active}
+            icon="💪"
+          />
+        </Link>
+
+        <Link href="/admin/members?status=expired" className="block cursor-pointer">
+          <StatCard
+            label="Expired"
+            value={totals.expired}
+            hint="Need renewal"
+            icon="⏰"
+          />
+        </Link>
+
         <StatCard label="Today's Attendance" value={todayAtt?.c ?? 0} icon="✅" />
+
         <div className="col-span-2 lg:col-span-1">
           <StatCard label="Monthly Revenue" value={formatINR(monthRevenue)} icon="💰" accent />
         </div>
@@ -107,6 +136,7 @@ export default async function AdminDashboard() {
         <Card title="Revenue — last 6 months" className="lg:col-span-2">
           <BarChart data={revenue} format={(v) => `₹${(v / 1000).toFixed(v >= 10000 ? 0 : 1)}k`} />
         </Card>
+
         <Card title="Membership distribution">
           {dist.length === 0 ? (
             <Empty>No active memberships yet.</Empty>
